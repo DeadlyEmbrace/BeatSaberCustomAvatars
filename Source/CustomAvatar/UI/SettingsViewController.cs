@@ -37,7 +37,7 @@ namespace CustomAvatar.UI
         private Material _greenMaterial;
         private Material _blueMaterial;
         
-        private TrackedDeviceManager _trackedDeviceManager;
+        private ITrackedDeviceManager _trackedDeviceManager;
         private PlayerAvatarManager _avatarManager;
         private AvatarTailor _avatarTailor;
         private Settings _settings;
@@ -48,7 +48,7 @@ namespace CustomAvatar.UI
         private CalibrationData.FullBodyCalibration _currentAvatarManualCalibration;
 
         [Inject]
-        private void Inject(TrackedDeviceManager trackedDeviceManager, PlayerAvatarManager avatarManager, AvatarTailor avatarTailor, Settings settings, CalibrationData calibrationData, ShaderLoader shaderLoader, ILoggerProvider loggerProvider)
+        private void Inject(ITrackedDeviceManager trackedDeviceManager, PlayerAvatarManager avatarManager, AvatarTailor avatarTailor, Settings settings, CalibrationData calibrationData, ShaderLoader shaderLoader, ILoggerProvider loggerProvider)
         {
             _trackedDeviceManager = trackedDeviceManager;
             _avatarManager = avatarManager;
@@ -71,7 +71,7 @@ namespace CustomAvatar.UI
             _cameraNearClipPlane.Value = _settings.cameraNearClipPlane;
 
             UpdateUI(_avatarManager.currentlySpawnedAvatar?.avatar);
-            OnInputDevicesChanged(null, DeviceUse.Unknown);
+            UpdateCalibrationButtons(_avatarManager.currentlySpawnedAvatar?.avatar);
 
             _armSpanLabel.SetText($"{_settings.playerArmSpan:0.00} m");
 
@@ -155,14 +155,14 @@ namespace CustomAvatar.UI
             _automaticCalibrationHoverHint.text = avatar.descriptor.supportsAutomaticCalibration ? "Use automatic calibration instead of manual calibration." : "Not supported by current avatar";
         }
 
-        private void OnInputDevicesChanged(TrackedDeviceState state, DeviceUse use)
+        private void OnInputDevicesChanged(ITrackedDeviceState state)
         {
             UpdateCalibrationButtons(_avatarManager.currentlySpawnedAvatar?.avatar);
         }
 
         private void UpdateCalibrationButtons(LoadedAvatar avatar)
         {
-            if (!_trackedDeviceManager.waist.tracked && !_trackedDeviceManager.leftFoot.tracked && !_trackedDeviceManager.rightFoot.tracked)
+            if (!_trackedDeviceManager.waist.isTracking && !_trackedDeviceManager.leftFoot.isTracking && !_trackedDeviceManager.rightFoot.isTracking)
             {
                 _autoCalibrateButton.interactable = false;
                 _autoClearButton.interactable = false;
