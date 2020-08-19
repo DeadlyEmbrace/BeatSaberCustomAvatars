@@ -1,5 +1,6 @@
 ﻿using CustomAvatar.Logging;
 using System;
+using System.Linq;
 using UnityEngine;
 using Valve.VR;
 using Zenject;
@@ -19,6 +20,8 @@ namespace CustomAvatar.Tracking.OpenVR
         public event Action<ITrackedDeviceState> deviceRemoved;
         public event Action<ITrackedDeviceState> deviceTrackingAcquired;
         public event Action<ITrackedDeviceState> deviceTrackingLost;
+
+        private readonly ETrackingResult[] _validTrackingResults = { ETrackingResult.Running_OK, ETrackingResult.Running_OutOfRange, ETrackingResult.Calibrating_OutOfRange };
 
         private readonly OpenVRDeviceState _head      = new OpenVRDeviceState(DeviceUse.Head);
         private readonly OpenVRDeviceState _leftHand  = new OpenVRDeviceState(DeviceUse.LeftHand);
@@ -207,7 +210,7 @@ namespace CustomAvatar.Tracking.OpenVR
 
             TrackedDevicePose_t pose = _poses[deviceState.deviceIndex];
 
-            bool isTracking = pose.bPoseIsValid && (pose.eTrackingResult == ETrackingResult.Running_OK || pose.eTrackingResult == ETrackingResult.Calibrating_InProgress);
+            bool isTracking = pose.bPoseIsValid && _validTrackingResults.Contains(pose.eTrackingResult);
 
             if (deviceState.isTracking != isTracking)
             {
